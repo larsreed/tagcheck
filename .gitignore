@@ -1,0 +1,32 @@
+.idea
+
+project/target/
+project/project/
+project/boot/
+
+.cache
+.target/
+target/
+
+temp
+
+dist/*
+.worksheet/
+
+backup/
+bin/
+
+*.class
+*.log
+
+atlassian-ide-plugin.xml
+
+# sbt specific
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
+
+# Scala-IDE specific
+.scala_dependencies
+
