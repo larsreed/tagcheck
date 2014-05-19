@@ -1,7 +1,7 @@
 package net.kalars.tagcheck.tags
 
-import net.kalars.tagcheck.actors.{Warning, FileResult}
 import net.kalars.tagcheck.io.IoUtils._
+import net.kalars.tagcheck.{FileResult, Warning}
 
 /** The checker classes. */
 object Checkers {

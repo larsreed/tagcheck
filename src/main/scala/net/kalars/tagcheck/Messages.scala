@@ -1,29 +1,31 @@
-package net.kalars.tagcheck.actors
+package net.kalars.tagcheck
 
 import net.kalars.tagcheck.io.IoUtils
 
+// ALL MESSAGE TYPES
+
 /*
 Message passing:
-1. -> TagCheckBoss: ScanRequest (start dirs)
+1.  -> TagCheckBoss: ScanRequest (start dirs)
 2.  TagCheckBoss -> DirScanner: DirSearch (dir)
 3a. DirScanner -> DirScanner: DirSearch (dir)
 3b. DirScanner -> FileScanner: FileSearch (dir)
-3c. DirScanner -> TagCheckBoss: FoundDir (dir)
 4.  FileScanner -> DirScanner: FileResult (file, meta data)
-5.  DirScanner -> DirChecker: DirResult (dir, FileResults)
-6.  DirChecker -> TagCheckBoss: DirResult (dir, FileResults)
-7.  TagCheckBoss -> : ScanResponse (n*ScanResponseLine = dir, file, level, warning)
+5.  DirScanner -> TagCheckBoss: ScanResponse (n*ScanResponseLine = dir, file, level, warning)
+6.  DirScanner -> TagCheckBoss / DirScanner: DoneDir(dir)
  */
 
 /** What we want to scan. */
-case class ScanRequest(maxLevels: Int, dirList:List[String])
+case class ScanRequest(maxLevels: Int, immediateResponse:Boolean, fileRegexp: String,
+                       dirList:List[String])
+
 /** A result line. */
-case class ScanResponseLine(dir: String, file:String, level: Int, warning: String)
+case class ScanResponseLine(dir: String, file:String, level: Int, warning: String) {
+  def printLine() { println(s"$level\t$file: $warning") }
+}
 /** The total result. */
 case class ScanResponse(dirs:List[ScanResponseLine])
 
-/** Notification of searching in another (aub)dir. */
-case class FoundDir(dir:String)
 /** Notification of directory done. */
 case class DoneDir(dir:String)
 /** Search a directory. */
@@ -44,14 +46,4 @@ case object Warning {
 case class FileResult(name:String, tags:Map[String, String], warnings:List[Warning]) {
   lazy val warningLevel= warnings.foldLeft(0) { (max:Int, w:Warning) => math.max(max, w.level) }
   lazy val codeName= IoUtils.washName(name)
-}
-/** Result of DirSearch. */
-case class DirResult(name:String, files:List[FileResult]) {
-  lazy val warningLevel= files.foldLeft(0) {
-      (max: Int, res: FileResult) => math.max(max, res.warningLevel)
-  }
-  lazy val codeName= IoUtils.washName(name)
-  def warnings: List[ScanResponseLine]= files.flatMap { file =>
-    file.warnings.map { w=> ScanResponseLine(name, file.name, w.level, w.text) }
-  }
 }

@@ -1,7 +1,8 @@
 package net.kalars.tagcheck.io
 
 import scala.collection.JavaConversions._
-import java.io.{IOException, File}
+import java.io.File
+
 import org.jaudiotagger.audio.AudioFileIO
 import org.jaudiotagger.tag.FieldKey
 
