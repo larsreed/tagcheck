@@ -1,13 +1,11 @@
 package net.kalars.tagcheck.actors
 
 import akka.actor._
+
 import net.kalars.tagcheck.io.IoUtils._
 import net.kalars.tagcheck._
 import net.kalars.tagcheck.tags.Checkers
-import net.kalars.tagcheck.FileSearch
-import net.kalars.tagcheck.DoneDir
-import net.kalars.tagcheck.FileResult
-import net.kalars.tagcheck.DirSearch
+import net.kalars.tagcheck.{FileSearch,  DoneDir, FileResult, DirSearch}
 
 /**
  * Scans a directory, starts file scanners for audio files and new dir scanners for subdirectories.
@@ -24,7 +22,7 @@ class DirScanner(boss:ActorRef, fileRegexp:String) extends Actor with ActorLoggi
     case DirSearch(dirName, depth) => /////////////////////////////////////////////////////////////
       dir= dirName
       fileScanner= context.actorOf(Props[FileScanner])
-      log.debug(s"Scanning directory $dir ($depth)")
+      log.debug(s"Scanning directory $dir ($depth) [${self.path}]")
       scan(dirName, depth)
       possiblyDone()
 
@@ -41,7 +39,6 @@ class DirScanner(boss:ActorRef, fileRegexp:String) extends Actor with ActorLoggi
 
   def possiblyDone() {
     if (fileCount==0) {
-      log.debug(s"Done scanning directory $dir")
       val lines = for {fileRes <- results if fileRes.warningLevel > 0
                        warn <- fileRes.warnings} yield {
         ScanResponseLine(dir, fileRes.name, warn.level, warn.text)
@@ -50,10 +47,9 @@ class DirScanner(boss:ActorRef, fileRegexp:String) extends Actor with ActorLoggi
       fileCount= -1
     }
     if (fileCount <=0 && dirCount==0 ) {
+      log.debug(s"Done scanning directory $dir")
       context.parent ! DoneDir(dir)
-      fileScanner ! PoisonPill
-      Thread.sleep(500)
-      self ! PoisonPill
+      context.stop(self)
     }
   }
 
