@@ -24,7 +24,7 @@ case class ScanResponseLine(dir: String, file:String, level: Int, warning: Strin
   def printLine() { println(s"$level\t$file: $warning") }
 }
 /** The total result. */
-case class ScanResponse(dirs:List[ScanResponseLine])
+case class ScanResponse(dirName:String, dirs:List[ScanResponseLine])
 
 /** Notification of directory done. */
 case class DoneDir(dir:String)

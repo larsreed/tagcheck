@@ -46,12 +46,13 @@ class DirScanner(boss:ActorRef, fileRegexp:String) extends Actor with ActorLoggi
                        warn <- fileRes.warnings} yield {
         ScanResponseLine(dir, fileRes.name, warn.level, warn.text)
       }
-      boss ! ScanResponse(lines.toList)
+      boss ! ScanResponse(dir, lines.toList)
       fileCount= -1
     }
     if (fileCount <=0 && dirCount==0 ) {
       context.parent ! DoneDir(dir)
       fileScanner ! PoisonPill
+      Thread.sleep(500)
       self ! PoisonPill
     }
   }

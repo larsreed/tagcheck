@@ -28,19 +28,20 @@ class TagCheckActor extends Actor with ActorLogging {
       children -= name
       if (children.isEmpty) {
         log.debug("Scan done")
-        for (line<-sortResults) line.printLine()
+        for (line<-sortResults(results)) line.printLine()
         context.stop(self)
         Thread.sleep(1000)
         context.system.shutdown()
       }
 
-    case ScanResponse(dirs) => ////////////////////////////////////////////////////////////////////
-      if (immediateResponse) for (line<-dirs) line.printLine()
+    case ScanResponse(dir, dirs) => ////////////////////////////////////////////////////////////////////
+      log.debug(s"Reply from $dir")
+      if (immediateResponse) for (line<-sortResults(dirs)) line.printLine()
       else results ++= dirs
   }
 
-  def sortResults: List[ScanResponseLine] = {
-    results.sortWith { (a, b) =>
+  def sortResults(list: List[ScanResponseLine]): List[ScanResponseLine] = {
+    list.sortWith { (a, b) =>
       if (a.level == b.level) a.file < b.file
       else a.level > b.level
     }
