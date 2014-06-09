@@ -15,23 +15,35 @@ Message passing:
 6.  DirScanner -> TagCheckBoss / DirScanner: DoneDir(dir)
  */
 
+/** Things that may be queued. */
+sealed trait Message
+
 /** What we want to scan. */
 case class ScanRequest(maxLevels: Int, immediateResponse:Boolean, fileRegexp: String,
-                       dirList:List[String])
+                       dirList:List[String]) extends Message
 
 /** A result line. */
-case class ScanResponseLine(dir: String, file:String, level: Int, warning: String) {
+case class ScanResponseLine(dir: String, file:String, level: Int, warning: String) extends Message {
   def printLine() { println(s"$level\t$file: $warning") }
 }
+
+object ScanUtils {
+  def sortResults(list: List[ScanResponseLine]): List[ScanResponseLine] = {
+    list.sortWith { (a, b) =>
+      if (a.level == b.level) a.file < b.file
+      else a.level > b.level
+    }
+  }
+}
 /** The total result. */
-case class ScanResponse(dirName:String, dirs:List[ScanResponseLine])
+case class ScanResponse(dirName: String, dirs: List[ScanResponseLine]) extends Message
 
 /** Notification of directory done. */
-case class DoneDir(dir:String)
+case class DoneDir(dir: String) extends Message
 /** Search a directory. */
-case class DirSearch (name: String, restLevel: Int)
+case class DirSearch (name: String, restLevel: Int) extends Message
 /** Search a file. */
-case class FileSearch(name: String)
+case class FileSearch(name: String) extends Message
 
 /** One warning on a file .*/
 case class Warning(level: Int, text: String)
@@ -43,7 +55,8 @@ case object Warning {
   val MaybeBad= 20
 }
 /** Result of FileSearch. */
-case class FileResult(name:String, tags:Map[String, String], warnings:List[Warning]) {
+case class FileResult(name:String, tags:Map[String, String], warnings:List[Warning]) extends Message{
   lazy val warningLevel= warnings.foldLeft(0) { (max:Int, w:Warning) => math.max(max, w.level) }
   lazy val codeName= IoUtils.washName(name)
 }
+

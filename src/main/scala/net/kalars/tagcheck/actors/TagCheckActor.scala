@@ -5,6 +5,7 @@ import net.kalars.tagcheck._
 import net.kalars.tagcheck.ScanResponse
 import net.kalars.tagcheck.ScanRequest
 import net.kalars.tagcheck.ScanResponseLine
+import net.kalars.tagcheck.ScanUtils.sortResults
 import net.kalars.tagcheck.DirSearch
 
 /** The initial recipient & director. */
@@ -39,19 +40,11 @@ class TagCheckActor extends Actor with ActorLogging {
       if (immediateResponse) for (line<-sortResults(dirs)) line.printLine()
       else results ++= dirs
   }
-
-  def sortResults(list: List[ScanResponseLine]): List[ScanResponseLine] = {
-    list.sortWith { (a, b) =>
-      if (a.level == b.level) a.file < b.file
-      else a.level > b.level
-    }
-  }
 }
 
 object TagCheckActor {
   def actorRun(immediateResponse: Boolean, fileRegexp: String, maxDepth:Int, dirs: List[String]) {
     val system = ActorSystem("Main")
-    // dirs ::= "N:\\mp3\\David Bowie"
     val ac = system.actorOf(Props[TagCheckActor])
     ac ! ScanRequest(maxDepth, immediateResponse, fileRegexp, dirs)
   }

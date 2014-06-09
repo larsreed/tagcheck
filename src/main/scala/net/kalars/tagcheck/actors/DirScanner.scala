@@ -28,7 +28,7 @@ class DirScanner(boss:ActorRef, fileRegexp:String) extends Actor with ActorLoggi
 
     case msg:FileResult => ////////////////////////////////////////////////////////////////////////
       fileCount -= 1
-      results ::= checkDir(msg)
+      results ::= Checkers.checkFile(msg)
       possiblyDone()
 
     case DoneDir(dirName) => //////////////////////////////////////////////////////////////////////
@@ -67,6 +67,4 @@ class DirScanner(boss:ActorRef, fileRegexp:String) extends Actor with ActorLoggi
     }
   }
 
-  def checkDir(file:FileResult): FileResult =
-    Checkers.checkers.foldLeft(file){ (res, checker) => checker.check(res)}
 }

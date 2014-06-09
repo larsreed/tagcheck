@@ -10,6 +10,8 @@ object Checkers {
            new AlbumChecker,
            new TitleChecker,
            new ErrorChecker)
+  def checkFile(file:FileResult): FileResult =
+    checkers.foldLeft(file){ (res, checker) => checker.check(res)}
 }
 
 /** Interface for checking of files. */
