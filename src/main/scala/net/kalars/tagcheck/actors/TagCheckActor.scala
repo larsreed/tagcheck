@@ -1,51 +1,61 @@
 package net.kalars.tagcheck.actors
 
-import akka.actor._
-import net.kalars.tagcheck._
-import net.kalars.tagcheck.ScanResponse
-import net.kalars.tagcheck.ScanRequest
-import net.kalars.tagcheck.ScanResponseLine
 import net.kalars.tagcheck.ScanUtils.sortResults
-import net.kalars.tagcheck.DirSearch
+import net.kalars.tagcheck.{DirSearch, DoneDir, ScanResponse, ScanRequest, ScanResponseLine}
+import akka.actor.{ActorSystem, Props, ActorLogging, Actor}
 
-/** The initial recipient & director. */
+/**
+ * The initial recipient & director for the actor solution.
+ *
+ * Message passing:
+ *  1.  -> TagCheckActor: ScanRequest (start dirs)
+ *  2.  TagCheckActor -> DirScanner: DirSearch (dir)
+ *  3a. DirScanner -> DirScanner: DirSearch (dir)
+ *  3b. DirScanner -> FileScanner: FileSearch (dir)
+ *  4.  FileScanner -> DirScanner: FileResult (file, meta data)
+ *  5.  DirScanner -> TagCheckActor: ScanResponse (n*ScanResponseLine = dir, file, level, warning)
+ *  6.  DirScanner -> TagCheckActor / DirScanner: DoneDir(dir)
+ */
 class TagCheckActor extends Actor with ActorLogging {
 
-  var children= Set.empty[String]
-  var results= List.empty[ScanResponseLine]
-  var immediateResponse= false
+  // Internal state for actor. Not externally visible.
+  private var children= Set.empty[String] // The directories we are waiting for
+  private var results= List.empty[ScanResponseLine] // Accumulating responses
 
   override def receive= {
-    case ScanRequest(maxLevels, immediate, fileRegexp, dirList) => ////////////////////////////////
-      immediateResponse= immediate
+    case ScanRequest(fileRegexp, dirList) => // Start here /////////////////////////////////////////
       for (dir <- dirList) {
         log.debug(s"Requesting scan of $dir")
         children += dir
         var child= context.actorOf(Props(new DirScanner(self, fileRegexp)))
-        child ! DirSearch(dir, maxLevels)
+        child ! DirSearch(dir)
       }
 
-    case DoneDir(name) => /////////////////////////////////////////////////////////////////////////
+    case DoneDir(name) => // One child done ////////////////////////////////////////////////////////
       children -= name
       if (children.isEmpty) {
         log.debug("Scan done")
-        for (line<-sortResults(results)) line.printLine()
-        context.stop(self)
-        Thread.sleep(1000)
-        context.system.shutdown()
+        shutDown()
       }
 
-    case ScanResponse(dir, dirs) => ////////////////////////////////////////////////////////////////////
+    case ScanResponse(dir, dirs) => // Results directly from a directory ///////////////////////////
       log.debug(s"Reply from $dir")
-      if (immediateResponse) for (line<-sortResults(dirs)) line.printLine()
-      else results ++= dirs
+      results ++= dirs
+  }
+
+  private def shutDown() {
+    for (line <- sortResults(results)) line.printLine()
+    context.stop(self)
+    Thread.sleep(1000) // hack -- Akka is not too good at stopping?
+    context.system.shutdown()
   }
 }
 
 object TagCheckActor {
-  def actorRun(immediateResponse: Boolean, fileRegexp: String, maxDepth:Int, dirs: List[String]) {
+  /** Starting point for the actor solution. */
+  def actorRun(fileRegexp: String, dirs: List[String]) {
     val system = ActorSystem("Main")
     val ac = system.actorOf(Props[TagCheckActor])
-    ac ! ScanRequest(maxDepth, immediateResponse, fileRegexp, dirs)
+    ac ! ScanRequest(fileRegexp, dirs)
   }
 }

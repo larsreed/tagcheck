@@ -3,7 +3,7 @@ package net.kalars.tagcheck.io
 import org.scalatest.FlatSpec
 import JAudioTaggerFacade._
 
-/** Test JAudioTaggerFacade. */
+/** Spec of  JAudioTaggerFacade. */
 class JAudioTaggerFacadeSpec extends FlatSpec {
   "A tag check" should "handle missing files as empty" in {
     val tags=extractTags("noSuchFile.mp3")

@@ -16,8 +16,11 @@ object JAudioTaggerFacade {
   protected[io] val ErrorTag= "Error"
   protected[io] val AllTags= List(TitleTag, ArtistTag, AlbumTag)
 
+  /** Retrieve selected tags from given file. */
   def extractTags(file:String): Map[String, String]= {
+    // Canonicalize string format
     def fixValue(s:String): String= s.replaceAll("Text=.", "").replaceAll("\"; *$", "")
+
     try {
       val audioFile = AudioFileIO.read(new File(file))
       val tags= audioFile.getTag
@@ -25,7 +28,7 @@ object JAudioTaggerFacade {
                           tag <- tags.getFields(key)}
          yield (key.toString, fixValue(tag.toString))
       val res= mappings.toMap
-      res get ArtistTag.toString match {
+      res.get(ArtistTag.toString) match {
         case Some(_) => res
         case None =>
           val alt= tags.getFields(ArtistTag2)

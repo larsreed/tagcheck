@@ -4,29 +4,21 @@ import net.kalars.tagcheck.io.IoUtils
 
 // ALL MESSAGE TYPES
 
-/*
-Message passing:
-1.  -> TagCheckBoss: ScanRequest (start dirs)
-2.  TagCheckBoss -> DirScanner: DirSearch (dir)
-3a. DirScanner -> DirScanner: DirSearch (dir)
-3b. DirScanner -> FileScanner: FileSearch (dir)
-4.  FileScanner -> DirScanner: FileResult (file, meta data)
-5.  DirScanner -> TagCheckBoss: ScanResponse (n*ScanResponseLine = dir, file, level, warning)
-6.  DirScanner -> TagCheckBoss / DirScanner: DoneDir(dir)
- */
-
 /** Things that may be queued. */
 sealed trait Message
 
 /** What we want to scan. */
-case class ScanRequest(maxLevels: Int, immediateResponse:Boolean, fileRegexp: String,
-                       dirList:List[String]) extends Message
+case class ScanRequest(fileRegexp: String, dirList:List[String]) extends Message
 
 /** A result line. */
-case class ScanResponseLine(dir: String, file:String, level: Int, warning: String) extends Message {
+case class ScanResponseLine(dir: String,
+                            file:String,
+                            level: Int,
+                            warning: String) extends Message {
   def printLine() { println(s"$level\t$file: $warning") }
 }
 
+/** Helper routines. */
 object ScanUtils {
   def sortResults(list: List[ScanResponseLine]): List[ScanResponseLine] = {
     list.sortWith { (a, b) =>
@@ -41,7 +33,7 @@ case class ScanResponse(dirName: String, dirs: List[ScanResponseLine]) extends M
 /** Notification of directory done. */
 case class DoneDir(dir: String) extends Message
 /** Search a directory. */
-case class DirSearch (name: String, restLevel: Int) extends Message
+case class DirSearch (name: String) extends Message
 /** Search a file. */
 case class FileSearch(name: String) extends Message
 
@@ -55,7 +47,9 @@ case object Warning {
   val MaybeBad= 20
 }
 /** Result of FileSearch. */
-case class FileResult(name:String, tags:Map[String, String], warnings:List[Warning]) extends Message{
+case class FileResult(name:String,
+                      tags:Map[String, String],
+                      warnings:List[Warning]) extends Message {
   lazy val warningLevel= warnings.foldLeft(0) { (max:Int, w:Warning) => math.max(max, w.level) }
   lazy val codeName= IoUtils.washName(name)
 }

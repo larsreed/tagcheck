@@ -3,7 +3,7 @@ package net.kalars.tagcheck.io
 import org.scalatest.FlatSpec
 import IoUtils._
 
-/** Testing IoUtils. */
+/** Spec of IoUtils. */
 class IoUtilsSpec extends FlatSpec {
   val dir= "src/test/resources/scanDirTest"
 
@@ -15,7 +15,6 @@ class IoUtilsSpec extends FlatSpec {
 
   it should "find files and subdirectories" in {
     val (dirs,files)= scanDir(dir)
-    // new File(".").listFiles().foreach(f => println(f))
     assert(dirs.size===1, "dirs")
     assert(files.size===2, "files")
   }
@@ -38,6 +37,7 @@ class IoUtilsSpec extends FlatSpec {
 
   it should "remove THE from all positions when a single word" in {
     assert(washName("the long way home")==="LONGWAYHOME")
+    assert(washName("The The")==="")
     assert(washName("Like the banana")==="LIKEBANANA")
   }
 

@@ -16,12 +16,13 @@ object IoUtils {
   def scanDir(dir:String): (Seq[String], Seq[String]) = {
     val allEntries= new File(dir).listFiles()
     val all= if (allEntries==null) Array.empty[File] else allEntries
-    val dirs= for (file <- all if file.isDirectory) yield file.getCanonicalPath
-    val files= for (file <- all if file.isFile) yield file.getCanonicalPath
-    (dirs, files)
+    (
+      for (file <- all if file.isDirectory) yield file.getCanonicalPath,
+      for (file <- all if file.isFile) yield file.getCanonicalPath
+    )
   }
 
-  /** What we compare in tags. */
+  /** What we compare in tags. ASCII uppercase, not A or THE as words*/
   def washName(name:String): String=
     name.toUpperCase
         .replaceAll("\\bA\\b", "")

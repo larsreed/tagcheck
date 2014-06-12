@@ -1,11 +1,11 @@
-package net.kalars.tagcheck.tags
+package net.kalars.tagcheck.rules
 
 import net.kalars.tagcheck.io.IoUtils._
 import net.kalars.tagcheck.{FileResult, Warning}
 
-/** The checker classes. */
+/** Public entry point. */
 object Checkers {
-  val checkers: List[FileChecker]=
+  private val checkers=
       List(new ArtistChecker,
            new AlbumChecker,
            new TitleChecker,
@@ -20,22 +20,21 @@ trait FileChecker {
   def check(file: FileResult): FileResult
 }
 
-trait FileCheckerImpl {
+sealed trait FileCheckerImpl {
   self: FileChecker =>
 
+  /** Standard implementation of verifying a single tag. */
   def tagChecker(file: FileResult, tag: String, level:Int) = {
-    def checkTag(meta: Map[String, String], w: List[Warning]) = {
-      // println(s"Checking $tag in ${file.name}")
-      meta get tag match {
+    def checkTag(meta: Map[String, String], warnings: List[Warning]) = {
+      meta.get(tag) match {
         case Some(tagText) =>
-          if (file.codeName.contains(washName(tagText))) w
-          else Warning(level, s"$tag '$tagText' does not match file name") :: w
+          if (file.codeName.contains(washName(tagText))) warnings
+          else Warning(level, s"$tag '$tagText' does not match file name") :: warnings
         case None =>
-          Warning(Warning.ReallyBad, s"Missing $tag tag") :: w
+          Warning(Warning.ReallyBad, s"Missing $tag tag") :: warnings
       }
     }
-    val warnings = checkTag(file.tags, file.warnings)
-    file.copy(warnings = warnings)
+    file.copy(warnings = checkTag(file.tags, file.warnings))
   }
 }
 /** Check for artist metadata. */

@@ -9,7 +9,6 @@ class FileScanner extends Actor with ActorLogging {
   override def receive = {
     case FileSearch(file:String) =>
       log.debug(s"Extracting tags from $file")
-      val tags= extractTags(file)
-      sender ! FileResult(file, tags, List.empty)
+      sender ! FileResult(file, extractTags(file), List.empty)
   }
 }
