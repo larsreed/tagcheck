@@ -18,9 +18,9 @@ object TagCheck{
 
     if (argsList.size<2)  return help()
     argsList(0).toUpperCase match {
-      case "A" => runMode=ActorMode
+      case "A" => runMode= ActorMode
       case "N" => runMode= NaiveMode
-      case "T" => runMode=ThreadMode
+      case "T" => runMode= ThreadMode
       case _ => return help()
     }
     for (arg <- argsList.tail)
