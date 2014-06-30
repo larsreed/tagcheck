@@ -1,13 +1,13 @@
 package net.kalars.tagcheck.io
 
 import java.io.File
-import JAudioTaggerFacade.{TitleTag, ArtistTag, AlbumTag, AllTags}
-import net.kalars.tagcheck.io
+import JAudioTaggerFacade.{TitleTag, TrackArtistTag, AlbumArtistTag, AlbumTag, AllTags}
 
 /** General IO routines. */
 object IoUtils {
   val Title= TitleTag.toString
-  val Artist= ArtistTag.toString
+  val TrackArtist= TrackArtistTag.toString
+  val AlbumArtist= AlbumArtistTag.toString
   val Album= AlbumTag.toString
   val ErrorTag= JAudioTaggerFacade.ErrorTag
   val TagCount= AllTags.size
@@ -30,5 +30,5 @@ object IoUtils {
         .replaceAll("[^A-Z]", "")
 
   /** Extract tags from file. */
-  def extractTags(file:String): Map[String, String] = io.JAudioTaggerFacade.extractTags(file)
+  def extractTags(file:String): Map[String, String] = JAudioTaggerFacade.extractTags(file)
 }

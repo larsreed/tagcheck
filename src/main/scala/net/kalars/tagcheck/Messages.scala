@@ -43,8 +43,10 @@ case class Warning(level: Int, text: String)
 case object Warning {
   val Error= 99
   val ReallyBad= 90
+  val BadArtist= 85
   val Bad= 50
-  val MaybeBad= 20
+  val MaybeBad= 30
+  val ArtistMismatch= 20
 }
 /** Result of FileSearch. */
 case class FileResult(name:String,

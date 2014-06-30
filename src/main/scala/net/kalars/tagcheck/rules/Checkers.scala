@@ -23,15 +23,22 @@ trait FileChecker {
 sealed trait FileCheckerImpl {
   self: FileChecker =>
 
+  def noTag(tag: String, meta: Map[String, String], warnings: List[Warning]) =
+    Warning(Warning.ReallyBad, s"Missing $tag tag") :: warnings
+
+  def tagOK(tag: String, file: FileResult, level: Int, tagText:String,
+            meta: Map[String, String], warnings: List[Warning]) =
+    if (file.codeName.contains(washName(tagText))) warnings
+    else Warning(level, s"$tag '$tagText' does not match file name") :: warnings
+
   /** Standard implementation of verifying a single tag. */
   def tagChecker(file: FileResult, tag: String, level:Int) = {
     def checkTag(meta: Map[String, String], warnings: List[Warning]) = {
       meta.get(tag) match {
         case Some(tagText) =>
-          if (file.codeName.contains(washName(tagText))) warnings
-          else Warning(level, s"$tag '$tagText' does not match file name") :: warnings
+          tagOK(tag, file, level, tagText, meta, warnings)
         case None =>
-          Warning(Warning.ReallyBad, s"Missing $tag tag") :: warnings
+          noTag(tag, meta, warnings)
       }
     }
     file.copy(warnings = checkTag(file.tags, file.warnings))
@@ -39,7 +46,30 @@ sealed trait FileCheckerImpl {
 }
 /** Check for artist metadata. */
 class ArtistChecker extends FileChecker with FileCheckerImpl {
-  override def check(file: FileResult): FileResult = tagChecker(file, Artist, Warning.MaybeBad)
+
+  override def noTag(tag: String, meta: Map[String, String], warnings: List[Warning]) = {
+    meta get AlbumArtist match {
+      case Some(tag2) =>
+        Warning(Warning.BadArtist, s"Missing $tag tag (but has album artist $tag2)") :: warnings
+      case None =>
+        super.noTag(tag, meta, warnings)
+    }
+  }
+
+  override def tagOK(tag: String, file: FileResult, level: Int, tagText:String,
+                     meta: Map[String, String], warnings: List[Warning]) =
+      if (file.codeName.contains(washName(tagText)))
+        meta get AlbumArtist match {
+          case Some(tag2) if tag2 != tagText =>
+            Warning(Warning.ArtistMismatch,
+              s"Track artist $tag does not match album artist $tag2)") :: warnings
+          case _ =>
+            warnings
+      }
+      else super.tagOK(tag, file, level, tagText, meta, warnings)
+
+
+  override def check(file: FileResult): FileResult = tagChecker(file, TrackArtist, Warning.MaybeBad)
 }
 
 /** Check for title metadata. */

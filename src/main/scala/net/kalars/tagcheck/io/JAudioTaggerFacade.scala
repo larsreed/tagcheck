@@ -10,11 +10,11 @@ import org.jaudiotagger.tag.FieldKey
 object JAudioTaggerFacade {
 
   protected[io] val TitleTag= FieldKey.TITLE
-  protected[io] val ArtistTag= FieldKey.ARTIST
-  protected[io] val ArtistTag2= FieldKey.ALBUM_ARTIST
+  protected[io] val TrackArtistTag= FieldKey.ARTIST
+  protected[io] val AlbumArtistTag= FieldKey.ALBUM_ARTIST
   protected[io] val AlbumTag= FieldKey.ALBUM
   protected[io] val ErrorTag= "Error"
-  protected[io] val AllTags= List(TitleTag, ArtistTag, AlbumTag)
+  protected[io] val AllTags= List(TitleTag, TrackArtistTag, AlbumArtistTag, AlbumTag)
 
   /** Retrieve selected tags from given file. */
   def extractTags(file:String): Map[String, String]= {
@@ -27,14 +27,7 @@ object JAudioTaggerFacade {
       val mappings = for {key <- AllTags
                           tag <- tags.getFields(key)}
          yield (key.toString, fixValue(tag.toString))
-      val res= mappings.toMap
-      res.get(ArtistTag.toString) match {
-        case Some(_) => res
-        case None =>
-          val alt= tags.getFields(ArtistTag2)
-          if (!alt.isEmpty)  res + (ArtistTag.toString -> fixValue(alt.toString))
-          else res
-      }
+      mappings.toMap
     }
     catch {
       case e:Exception => Map(ErrorTag -> e.toString)
