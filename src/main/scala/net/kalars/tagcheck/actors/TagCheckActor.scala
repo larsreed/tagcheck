@@ -47,7 +47,7 @@ class TagCheckActor extends Actor with ActorLogging {
     for (line <- sortResults(results)) line.printLine()
     context.stop(self)
     Thread.sleep(1000) // hack -- Akka is not too good at stopping?
-    context.system.shutdown()
+    context.system.terminate()
   }
 }
 

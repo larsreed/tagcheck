@@ -25,8 +25,17 @@ object IoUtils {
   /** What we compare in tags. ASCII uppercase, not A or THE as words*/
   def washName(name:String): String=
     name.toUpperCase
+        .replaceAll("[-_]", " ")
         .replaceAll("\\bA\\b", "")
+        .replaceAll("\\bVOL[.]", "")
+        .replaceAll("\\bVOLUME\\b", "")
+        .replaceAll("\\bCD[ ]*[0-9]+[ ]+OF[ ]*[0-9]+", "")
+        .replaceAll("\\bCD[ ]*[0-9]+", "")
+        .replaceAll("\\bDISK[ ]*[0-9]+[ ]+OF[ ]*[0-9]+", "")
+        .replaceAll("\\bDISK[ ]*[0-9]+", "")
         .replaceAll("\\bTHE\\b", "")
+        .replaceAll("\\bREMASTERED\\b", "")
+        .replaceAll("\\bREMIX\\b", "")
         .replaceAll("[^A-Z]", "")
 
   /** Extract tags from file. */

@@ -29,7 +29,7 @@ sealed trait FileCheckerImpl {
   def tagOK(tag: String, file: FileResult, level: Int, tagText:String,
             meta: Map[String, String], warnings: List[Warning]) =
     if (file.codeName.contains(washName(tagText))) warnings
-    else Warning(level, s"$tag '$tagText' does not match file name") :: warnings
+    else Warning(level, s"$tag '$tagText' does not match file name") :: warnings  // Debug: ${washName(tagText)} vs ${file.codeName}
 
   /** Standard implementation of verifying a single tag. */
   def tagChecker(file: FileResult, tag: String, level:Int) = {
